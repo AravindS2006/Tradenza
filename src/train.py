@@ -27,6 +27,9 @@ def train_agent():
     train_df = fe.transform(train_df)
     test_df = fe.transform(test_df) # For evaluation
     
+    print(f"Training Data Shape: {train_df.shape}")
+    print(f"Testing Data Shape: {test_df.shape}")
+    
     # Create Environments
     # Using DummyVecEnv for now, can switch to Subproc for parallel training
     env = DummyVecEnv([lambda: GoldTradingEnv(train_df, config_path)])

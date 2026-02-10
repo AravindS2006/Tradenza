@@ -86,8 +86,11 @@ def backtest():
     print(f"Win Rate: {win_rate:.2%}")
     
     # Generate Report
-    qs.reports.html(results_df['returns'], output='backtest_report.html', title='Gold DRL Agent Backtest')
-    print("Report saved to backtest_report.html")
+    if results_df['returns'].abs().sum() == 0:
+        print("WARNING: Agent made no trades or returns are all zero. Skipping report generation.")
+    else:
+        qs.reports.html(results_df['returns'], output='backtest_report.html', title='Gold DRL Agent Backtest')
+        print("Report saved to backtest_report.html")
 
 if __name__ == "__main__":
     backtest()
