@@ -30,7 +30,7 @@ features:
 # Environment Settings
 env:
   initial_balance: 10000
-  commission: 0.0003 # 0.03% per trade
+  commission: 0.0001 # Reduced to 0.01% to encourage learning
   window_size: 50
   reward_scaling: 1e-4
 
@@ -42,9 +42,9 @@ agent:
   n_steps: 2048
   batch_size: 64
   gamma: 0.99
-  ent_coef: 0.01
+  ent_coef: 0.05 # Increased entropy to force exploration
   clip_range: 0.2
-  total_timesteps: 100000
+  total_timesteps: 300000 # Increased training duration
 
 # Training Settings
 training:
