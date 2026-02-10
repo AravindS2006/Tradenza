@@ -1,0 +1,11 @@
+numpy
+pandas
+ta
+gymnasium
+stable-baselines3[extra]
+optuna
+matplotlib
+scikit-learn
+pyyaml
+quantstats
+shimmy>=2.0
