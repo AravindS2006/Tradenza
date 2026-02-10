@@ -25,9 +25,9 @@ graph TD
         Value[Value Network]
     end
     
-    Env -->|State (Windowed)| Policy
-    Policy -->|Action (Long/Short/Hold)| Env
-    Env -->|Reward (Sharpe/Drawdown)| Policy
+    Env -->|"State (Windowed)"| Policy
+    Policy -->|"Action (Long/Short/Hold)"| Env
+    Env -->|"Reward (Sharpe/Drawdown)"| Policy
     
     Optuna[Optuna HPO] -->|Hyperparams| Policy
     
