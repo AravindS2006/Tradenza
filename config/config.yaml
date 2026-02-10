@@ -1,11 +1,19 @@
 # Data Settings
 data:
-  raw_file_path: "data/XAUUSD.csv"
+  raw_file_path: "data/XAU_15m_data.csv"
   processed_file_path: "data/processed.csv"
-  timeframe: "1H"
-  start_date: "2020-01-01"
-  end_date: "2023-12-31"
-  split_ratio: 0.8  # 80% training, 20% testing
+  timeframe: "15" # 15 minutes
+  
+  # Data Split Configuration
+  # Training: 2016 to 2024
+  train_start_date: "2016-01-01"
+  train_end_date: "2024-12-31"
+  
+  # Validation: 2025 to 2026
+  val_start_date: "2025-01-01"
+  val_end_date: "2026-12-31"
+  
+  split_ratio: 0.8  # Fallback if dates not used
 
 # Feature Engineering Settings
 features:
