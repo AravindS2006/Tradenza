@@ -10,8 +10,8 @@ data:
   train_end_date: "2023-12-31"
   
   # Validation: 2025 to 2026
-  val_start_date: "2020-01-01"
-  val_end_date: "2023-1-1"
+  val_start_date: "2025-01-01"
+  val_end_date: "2026-12-31"
   
   split_ratio: 0.8  # Fallback if dates not used
 
