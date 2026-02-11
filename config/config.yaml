@@ -11,7 +11,7 @@ data:
   
   # Validation: 2025 to 2026
   val_start_date: "2025-01-01"
-  val_end_date: "2026-12-31"
+  val_end_date: "2025-12-31"
   
   split_ratio: 0.8  # Fallback if dates not used
 
