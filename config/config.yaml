@@ -11,7 +11,7 @@ data:
   
   # Validation: 2025 to 2026
   val_start_date: "2025-01-01"
-  val_end_date: "2025-12-31"
+  val_end_date: "2026-12-31"
   
   split_ratio: 0.8  # Fallback if dates not used
 
@@ -44,7 +44,7 @@ agent:
   gamma: 0.99
   ent_coef: 0.05 # Increased entropy to force exploration
   clip_range: 0.2
-  total_timesteps: 300000 # Increased training duration
+  total_timesteps: 300000 # ~1 Epoch (94k rows). Minimum needed to see all data once.
 
 # Training Settings
 training:
