@@ -212,24 +212,62 @@ class GoldTradingEnv(gym.Env):
         # 4. Reward = Log_Return * Bonus - Drawdown * Penalty
         
         # We need self.prev_portfolio_value
-        if not hasattr(self, 'prev_portfolio_value'):
-            self.prev_portfolio_value = self.config_env['initial_balance']
+        # Custom Reward Function
+        # Log Return of the Portfolio Value
+        # To encourage trading, we calculate the return based on the *position's value change* 
+        # independent of the commission cost for the REWARD signal, 
+        # while still deducting it from the actual balance.
+        
+        # Calculate PnL based on price movement only
+        step_pnl = 0
+        if self.position == 1:
+            step_pnl = (current_price - prev_price) / prev_price
+        elif self.position == -1:
+            step_pnl = (prev_price - current_price) / prev_price
+            
+        # Add a small bonus for holding a position to encourage activity? 
+        # No, that might lead to blind holding.
+        
+        # Drawdown penalty
+        # drawdown = (self.max_balance - self.balance) / self.max_balance
+        
+        # Simplified Reward: Step PnL * scaling
+        reward = step_pnl * 100 
+        
+        # Add penalty for Drawdown to discourage reckless betting
+        reward -= (drawdown * 0.1)
+        
+        # Optional: Small penalty for inaction if needed, but let's stick to PnL first.
+        # If the agent does nothing, step_pnl is 0. Reward is -small_drawdown.
+        # If the agent trades and loses, Reward is negative.
+        # If the agent trades and wins, Reward is positive.
+        
+        # We RE-ADD commission penalty explicitly but smaller, so it learns efficiency eventually
+        if action == 1 and self.position == 0: # Entry Long
+             reward -= 0.02 # Small fixed penalty
+        elif action == 2 and self.position == 0: # Entry Short
+             reward -= 0.02
+        elif action == 2 and self.position == 1: # Reverse
+             reward -= 0.04
+        
+        # Calculate Portfolio Value for Info and Log Return tracking
+        # We need self.prev_portfolio_value logic back for 'return' in info
+        unrealized_pnl = 0
+        if self.position == 1:
+            unrealized_pnl = (current_price - self.entry_price) / self.entry_price * self.balance
+        elif self.position == -1:
+            unrealized_pnl = (self.entry_price - current_price) / self.entry_price * self.balance
             
         current_portfolio_value = self.balance + unrealized_pnl
         
+        if not hasattr(self, 'prev_portfolio_value'):
+            self.prev_portfolio_value = self.config_env['initial_balance']
+        
+        log_return = 0
         if self.prev_portfolio_value > 0:
             log_return = np.log(current_portfolio_value / self.prev_portfolio_value)
-        else:
-            log_return = 0
             
-        # Update prev
         self.prev_portfolio_value = current_portfolio_value
-        
-        # Constants
-        sharpe_bonus = 100.0 # Configurable
-        drawdown_penalty_factor = 10.0 # Lambda
-        
-        reward = (log_return * sharpe_bonus) - (drawdown * drawdown_penalty_factor)
         
         # Check termination
         if self.current_step >= len(self.df) - 1:

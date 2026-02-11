@@ -44,7 +44,7 @@ agent:
   gamma: 0.99
   ent_coef: 0.05 # Increased entropy to force exploration
   clip_range: 0.2
-  total_timesteps: 300000 # Increased training duration
+  total_timesteps: 30000 # Increased training duration
 
 # Training Settings
 training:
