@@ -232,7 +232,8 @@ class GoldTradingEnv(gym.Env):
         # drawdown = (self.max_balance - self.balance) / self.max_balance
         
         # Simplified Reward: Step PnL * scaling
-        reward = step_pnl * 100 
+        # Increased scaling to make returns much more significant than noise/drawdown
+        reward = step_pnl * 1000 
         
         # Add penalty for Drawdown to discourage reckless betting
         reward -= (drawdown * 0.1)
@@ -242,13 +243,9 @@ class GoldTradingEnv(gym.Env):
         # If the agent trades and loses, Reward is negative.
         # If the agent trades and wins, Reward is positive.
         
-        # We RE-ADD commission penalty explicitly but smaller, so it learns efficiency eventually
-        if action == 1 and self.position == 0: # Entry Long
-             reward -= 0.02 # Small fixed penalty
-        elif action == 2 and self.position == 0: # Entry Short
-             reward -= 0.02
-        elif action == 2 and self.position == 1: # Reverse
-             reward -= 0.04
+        # REMOVED fixed entry penalties to allow exploring trades without immediate punishment.
+        # The agent will still pay spread/commission in the 'balance', so it will learn efficiency 
+        # via the 'drawdown' penalty eventually (since losing money increases drawdown).
         
         # Calculate Portfolio Value for Info and Log Return tracking
         # We need self.prev_portfolio_value logic back for 'return' in info
