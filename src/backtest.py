@@ -2,13 +2,19 @@ import pandas as pd
 import numpy as np
 import yaml
 import os
-from stable_baselines3 import PPO
+import argparse
+from stable_baselines3 import PPO, A2C, SAC
+try:
+    from sb3_contrib import QRDQN
+except ImportError:
+    QRDQN = None
+
 from src.data import DataLoader
 from src.features import FeatureEngineer
 from src.env import GoldTradingEnv
 import quantstats as qs
 
-def backtest():
+def backtest(model_name="PPO_sharpe"):
     # Load Config
     config_path = os.getenv("CONFIG_PATH", "config/config.yaml")
     with open(config_path, 'r') as file:
@@ -26,12 +32,38 @@ def backtest():
     test_df = fe.transform(test_df)
     
     # Load Model
-    model_path = os.path.join(config['training']['model_save_path'], "final_model.zip")
-    if not os.path.exists(model_path):
-        print(f"Model not found at {model_path}. Please train first.")
-        return
+    # Handle filenames with or without .zip extension
+    if not model_name.endswith('.zip'):
+        model_filename = f"{model_name}.zip"
+    else:
+        model_filename = model_name
         
-    model = PPO.load(model_path)
+    model_path = os.path.join(config['training']['model_save_path'], model_filename)
+    if not os.path.exists(model_path):
+        # Fallback to old default if simple run
+        if model_name == "PPO_sharpe" and os.path.exists(os.path.join(config['training']['model_save_path'], "final_model.zip")):
+             print("PPO_sharpe not found, falling back to final_model.zip...")
+             model_path = os.path.join(config['training']['model_save_path'], "final_model.zip")
+        else:
+            print(f"Model not found at {model_path}. Please train first.")
+            return
+        
+    print(f"Loading model from {model_path}...")
+    
+    # Determine algo class from name logic or try/except
+    # Standard: Algo_Reward.zip
+    if "PPO" in model_filename:
+        model = PPO.load(model_path)
+    elif "A2C" in model_filename:
+        model = A2C.load(model_path)
+    elif "SAC" in model_filename:
+        model = SAC.load(model_path)
+    elif "QRDQN" in model_filename and QRDQN:
+        model = QRDQN.load(model_path)
+    else:
+        # Default fallback
+        print("Unknown algorithm in filename, trying PPO...")
+        model = PPO.load(model_path)
     
     # Create Env
     env = GoldTradingEnv(test_df, config_path)
@@ -89,8 +121,11 @@ def backtest():
     if results_df['returns'].abs().sum() == 0:
         print("WARNING: Agent made no trades or returns are all zero. Skipping report generation.")
     else:
-        qs.reports.html(results_df['returns'], output='backtest_report.html', title='Gold DRL Agent Backtest')
-        print("Report saved to backtest_report.html")
+        qs.reports.html(results_df['returns'], output=f'backtest_report_{model_name}.html', title=f'Gold DRL Agent Backtest ({model_name})')
+        print(f"Report saved to backtest_report_{model_name}.html")
 
 if __name__ == "__main__":
-    backtest()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", type=str, default="PPO_sharpe", help="Model name (e.g., PPO_sharpe, A2C_sortino)")
+    args = parser.parse_args()
+    backtest(args.model)

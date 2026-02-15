@@ -56,10 +56,22 @@ class FeatureEngineer:
         df['bb_width'] = bb.bollinger_wband()
         
         # ATR (Average True Range) for volatility
+        # Using a potentially smoother ATR for RL stability
         df['atr'] = ta.volatility.AverageTrueRange(
             high=df['high'], low=df['low'], close=df['close'],
-            window=self.feature_config['atr_period']
+            window=self.feature_config.get('atr_period', 14)
         ).average_true_range()
+        
+        # DXY Correlation Placeholder
+        # The Meta-Optimizer requires DXY correlation in the state space.
+        # Since we lack external DXY data, we initialize this feature as 0.0
+        # or use a proxy (e.g. correlation with USD volume if available, or just noise).
+        # ideally this would load 'dxy.csv' and merge.
+        if 'dxy_close' not in df.columns:
+            df['dxy_corr'] = 0.0 # Placeholder
+        else:
+             # Calculate rolling correlation if DXY data existed
+             df['dxy_corr'] = df['close'].rolling(window=30).corr(df['dxy_close'])
         
         # Lagged Returns (Log returns)
         df['log_ret'] = np.log(df['close'] / df['close'].shift(1))
@@ -75,7 +87,7 @@ class FeatureEngineer:
         # For RL state, we usually want stationary features. 
         # We'll use the indicators + returns.
         base_features = ['rsi', 'macd', 'macd_signal', 'macd_diff', 
-                         'bb_width', 'atr']
+                         'bb_width', 'atr', 'dxy_corr']
         lag_features = [f'log_ret_lag_{lag}' for lag in self.feature_config['lag_periods']]
         
         self.feature_columns = base_features + lag_features + ['log_ret']
